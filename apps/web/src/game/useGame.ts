@@ -30,7 +30,7 @@ export function useGame(init: GameInit) {
   const [status, setStatus] = useState<'playing' | 'won'>('playing')
   const [result, setResult] = useState<SolveResp | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [startedAt] = useState(() => Date.now())
+  const [startedAt, setStartedAt] = useState(() => Date.now())
 
   const current = path[path.length - 1]!
 
@@ -105,6 +105,7 @@ export function useGame(init: GameInit) {
     setStatus('playing')
     setResult(null)
     setQuery('')
+    setStartedAt(Date.now()) // a restart is a fresh attempt — reset the clock too
     void loadBoard(init.start, '')
   }
 

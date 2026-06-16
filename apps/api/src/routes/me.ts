@@ -4,7 +4,14 @@ import { accounts, scores, type Account } from '@sdoe/db'
 import { db, efp, getActiveGraph } from '../services.ts'
 import { ensureAccount, ensureAddresses, hydrateRows, toCard } from '../accounts.ts'
 import { getSessionAddress } from '../session.ts'
-import { getMe, newMeToken, putMe } from '../me-store.ts'
+import {
+  getMe,
+  getRecentTargets,
+  newMeToken,
+  pickMeTarget,
+  putMe,
+  recordRecentTarget,
+} from '../me-store.ts'
 
 const PAGE = 48
 
@@ -39,17 +46,24 @@ export async function meRoutes(app: FastifyInstance): Promise<void> {
     }
 
     // Reachable at distance 1..3 from your follows => real hop count (par) 2..4.
-    const reachable = active.graph.reachableFromSources(sources, new Set([1, 2, 3]))
+    // Exclude yourself — a mutual follow puts your own account in range (self-pair).
+    const reachable = active.graph
+      .reachableFromSources(sources, new Set([1, 2, 3]))
+      .filter((r) => r.id !== userId)
     if (reachable.length === 0) return reply.code(422).send({ error: 'no reachable target' })
-    // Prefer par 3 (distance 2); tie-break toward that distance.
+    // Bias the candidate pool toward par 3 (distance 2), but keep variety.
     const byPref = [...reachable].sort((a, b) => Math.abs(a.dist - 2) - Math.abs(b.dist - 2))
-    const candidateIds = byPref.slice(0, 300).map((r) => r.id)
+    const candidateIds = byPref.slice(0, 500).map((r) => r.id)
     const named = await db
       .select({ id: accounts.id })
       .from(accounts)
       .where(and(inArray(accounts.id, candidateIds), isNotNull(accounts.ensName)))
     const namedSet = new Set(named.map((n) => n.id))
-    const chosen = byPref.find((r) => namedSet.has(r.id)) ?? byPref[0]!
+    const namedCandidates = byPref.filter((r) => namedSet.has(r.id))
+    // Pick a random, recognizable, not-recently-seen target so it varies each run.
+    const pool = namedCandidates.length > 0 ? namedCandidates : byPref
+    const chosen = pickMeTarget(pool, getRecentTargets(userId)) ?? byPref[0]!
+    recordRecentTarget(userId, chosen.id)
     const targetId = chosen.id
     const par = chosen.dist + 1
 

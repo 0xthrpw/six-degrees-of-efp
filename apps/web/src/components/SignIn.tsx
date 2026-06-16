@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAccount, useConnect, useSignMessage } from 'wagmi'
 import { api } from '../api.ts'
 import { useSession } from '../session.tsx'
+import { Avatar } from './Avatar.tsx'
 import { shortAddress } from './PersonCard.tsx'
 
 /**
@@ -44,6 +45,7 @@ export function SignIn() {
   if (address) {
     return (
       <div className="auth">
+        <Avatar address={address} src={profile?.avatar} name={profile?.name} size={28} />
         <span className="auth__who">{profile?.name ?? shortAddress(address)}</span>
         <button type="button" className="btn btn--ghost" onClick={() => void signOut()}>
           Sign out

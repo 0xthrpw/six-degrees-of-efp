@@ -11,10 +11,14 @@ import type {
 const BASE = (import.meta.env.VITE_API_BASE as string | undefined) ?? 'http://localhost:8787'
 
 async function req<T>(path: string, opts: RequestInit = {}): Promise<T> {
+  // Only set a JSON content-type when there is a body — otherwise Fastify
+  // rejects bodyless POSTs (e.g. signout) with FST_ERR_CTP_EMPTY_JSON_BODY.
+  const headers: Record<string, string> = { ...(opts.headers as Record<string, string>) }
+  if (opts.body != null) headers['content-type'] = 'application/json'
   const res = await fetch(`${BASE}${path}`, {
     credentials: 'include',
-    headers: { 'content-type': 'application/json' },
     ...opts,
+    headers,
   })
   if (!res.ok) {
     let detail = ''

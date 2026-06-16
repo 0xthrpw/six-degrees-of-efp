@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify'
 import { generateNonce, SiweMessage } from 'siwe'
-import { ensureAccount, getCards } from '../accounts.ts'
+import { ensureAccount, getCardHydrated } from '../accounts.ts'
 import {
   clearNonce,
   clearSession,
@@ -49,8 +49,7 @@ export async function siweRoutes(app: FastifyInstance): Promise<void> {
     const address = getSessionAddress(req)
     if (!address) return { address: null, profile: null }
     const id = await ensureAccount(address)
-    const cards = await getCards([id])
-    return { address, profile: cards[0] ?? null }
+    return { address, profile: await getCardHydrated(id) }
   })
 
   app.post('/api/siwe/signout', async (_req, reply) => {

@@ -74,6 +74,14 @@ export async function hydrateRows(rows: Account[]): Promise<void> {
   })
 }
 
+/** Fetch one card, lazily resolving its ENS (name + avatar) if not yet cached. */
+export async function getCardHydrated(id: number): Promise<Card | null> {
+  const rows = await db.select().from(accounts).where(eq(accounts.id, id))
+  if (rows.length === 0) return null
+  await hydrateRows(rows)
+  return toCard(rows[0]!)
+}
+
 /** Fetch cards for a set of ids in the given order (no hydration). */
 export async function getCards(ids: number[]): Promise<Card[]> {
   if (ids.length === 0) return []
