@@ -1,0 +1,28 @@
+{
+  "name": "six-degrees-of-efp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "db:generate": "pnpm --filter @sdoe/db generate",
+    "db:migrate": "pnpm --filter @sdoe/db migrate",
+    "crawl": "pnpm --filter @sdoe/crawler crawl",
+    "api:dev": "pnpm --filter @sdoe/api dev",
+    "web:dev": "pnpm --filter @sdoe/web dev",
+    "dev": "pnpm --parallel -r --filter \"./apps/*\" dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
+  }
+}

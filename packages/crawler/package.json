@@ -1,0 +1,21 @@
+{
+  "name": "@sdoe/crawler",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "crawl": "tsx src/crawl.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@sdoe/db": "workspace:*",
+    "@sdoe/efp-client": "workspace:*",
+    "@sdoe/graph": "workspace:*",
+    "dotenv": "^16.4.7",
+    "drizzle-orm": "^0.36.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.9"
+  }
+}
