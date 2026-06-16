@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "crawl": "tsx src/crawl.ts",
+    "build": "node build.mjs",
+    "crawl": "node build.mjs && node dist/crawl.js",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
@@ -16,6 +17,7 @@
     "drizzle-orm": "^0.36.4"
   },
   "devDependencies": {
-    "@types/node": "^20.17.9"
+    "@types/node": "^20.17.9",
+    "esbuild": "^0.21.5"
   }
 }
