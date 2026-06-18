@@ -31,6 +31,7 @@ export function useGame(init: GameInit) {
   const [result, setResult] = useState<SolveResp | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [startedAt, setStartedAt] = useState(() => Date.now())
+  const [finishedMs, setFinishedMs] = useState<number | null>(null)
 
   const current = path[path.length - 1]!
 
@@ -61,10 +62,8 @@ export function useGame(init: GameInit) {
     }
   }
 
-  const finish = async (finalPath: Card[]) => {
-    setStatus('won')
+  const submit = async (finalPath: Card[], timeMs: number) => {
     const ids = finalPath.map((c) => c.id)
-    const timeMs = Date.now() - startedAt
     try {
       const resp =
         init.mode === 'me'
@@ -78,9 +77,23 @@ export function useGame(init: GameInit) {
               timeMs,
             })
       setResult(resp)
+      return resp
     } catch (e) {
       setError(e instanceof Error ? e.message : 'failed to submit')
+      return null
     }
+  }
+
+  const finish = async (finalPath: Card[]) => {
+    const timeMs = Date.now() - startedAt
+    setFinishedMs(timeMs)
+    setStatus('won')
+    await submit(finalPath, timeMs)
+  }
+
+  /** Re-post the finished result — e.g. after the player signs in post-win. */
+  const resubmit = async () => {
+    if (finishedMs != null) await submit(path, finishedMs)
   }
 
   const hop = (card: Card) => {
@@ -106,6 +119,7 @@ export function useGame(init: GameInit) {
     setResult(null)
     setQuery('')
     setStartedAt(Date.now()) // a restart is a fresh attempt — reset the clock too
+    setFinishedMs(null)
     void loadBoard(init.start, '')
   }
 
@@ -139,10 +153,12 @@ export function useGame(init: GameInit) {
     result,
     error,
     startedAt,
+    finishedMs,
     hop,
     undo,
     restart,
     search,
     loadMore,
+    resubmit,
   }
 }

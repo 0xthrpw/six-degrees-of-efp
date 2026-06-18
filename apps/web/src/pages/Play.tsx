@@ -6,6 +6,8 @@ import { useGame, type GameInit } from '../game/useGame.ts'
 import { HeroBar } from '../components/HeroBar.tsx'
 import { Avatar } from '../components/Avatar.tsx'
 import { PersonCard, shortAddress } from '../components/PersonCard.tsx'
+import { SignIn } from '../components/SignIn.tsx'
+import { useSession } from '../session.tsx'
 
 type Mode = 'daily' | 'endless' | 'me'
 
@@ -163,11 +165,21 @@ function Result({
   onNext: () => void
 }) {
   const nav = useNavigate()
+  const { address } = useSession()
   const [copied, setCopied] = useState(false)
   const hops = game.path.length - 1
   const r = game.result
   const startName = game.start.name ?? shortAddress(game.start.address)
   const targetName = game.target.name ?? shortAddress(game.target.address)
+  const invalid = r != null && r.valid === false
+  const saved = r?.posted === true
+  const secs = ((game.finishedMs ?? Date.now() - game.startedAt) / 1000).toFixed(1)
+
+  // If the player signs in after winning, save the result they already earned.
+  useEffect(() => {
+    if (address && r?.valid && !r.posted) void game.resubmit()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address])
 
   const share = async () => {
     const text = `${startName} → ${targetName} in ${hops} hops (best: ${game.par}) — Six Degrees of EFP`
@@ -182,14 +194,25 @@ function Result({
   return (
     <div className="overlay">
       <div className="result card">
-        <h2>{r?.beatPar ? '🏆 Optimal!' : '✅ Connected!'}</h2>
+        <h2>{invalid ? '🤔 Hmm…' : r?.beatPar ? '🏆 Optimal!' : '✅ Connected!'}</h2>
         <p className="result__line">
           {startName} → {targetName} in <b>{hops} hops</b>. Best possible: <b>{game.par}</b>.
         </p>
-        <p className="muted">
-          {((Date.now() - game.startedAt) / 1000).toFixed(1)}s
-          {r?.posted ? ' · posted to leaderboard' : ' · sign in to post your score'}
-        </p>
+        <p className="muted">{secs}s{saved ? ' · saved to the leaderboard' : ''}</p>
+
+        {invalid && <p className="auth__err">Couldn’t verify that path: {r?.reason}</p>}
+        {!invalid && !saved && (
+          <div className="saveprompt">
+            {address ? (
+              <span className="muted small">Saving your score…</span>
+            ) : (
+              <>
+                <span className="muted small">Sign in to save your score to the leaderboard.</span>
+                <SignIn />
+              </>
+            )}
+          </div>
+        )}
 
         <div className="replay">
           {game.path.map((c, i) => (
