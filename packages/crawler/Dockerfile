@@ -19,7 +19,7 @@ COPY packages/crawler/package.json packages/crawler/
 COPY packages/db/package.json packages/db/
 COPY packages/efp-client/package.json packages/efp-client/
 COPY packages/graph/package.json packages/graph/
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --filter "@sdoe/crawler..."
+RUN pnpm install --frozen-lockfile --filter "@sdoe/crawler..."
 
 COPY . .
 RUN pnpm --filter @sdoe/db build && pnpm --filter @sdoe/crawler build
