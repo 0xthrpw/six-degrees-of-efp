@@ -1,6 +1,30 @@
 import { useState } from 'react'
 import { useAccount, useConnect, useSignMessage } from 'wagmi'
 import { api } from '../api.ts'
+
+type Connectors = ReturnType<typeof useConnect>['connectors']
+
+/**
+ * Pick a usable connector. Prefer an injected browser wallet only when one is
+ * actually present (otherwise wagmi throws "Provider not found"), then fall back
+ * to WalletConnect (QR / mobile) when it's configured.
+ */
+async function pickConnector(connectors: Connectors): Promise<Connectors[number]> {
+  const injectedC = connectors.find((c) => c.type === 'injected')
+  if (injectedC) {
+    try {
+      if (await injectedC.getProvider()) return injectedC
+    } catch {
+      /* no injected provider in this browser — fall through to WalletConnect */
+    }
+  }
+  const walletConnectC = connectors.find((c) => c.type === 'walletConnect')
+  if (walletConnectC) return walletConnectC
+  if (injectedC) return injectedC
+  throw new Error(
+    'No Ethereum wallet found. Install a browser wallet (e.g. MetaMask) or enable WalletConnect.',
+  )
+}
 import { useSession } from '../session.tsx'
 import { Avatar } from './Avatar.tsx'
 import { shortAddress } from './PersonCard.tsx'
@@ -61,8 +85,7 @@ export function SignIn() {
       let addr = account.address as string | undefined
       let chainId = account.chainId ?? 1
       if (!addr) {
-        const connector = connectors[0]
-        if (!connector) throw new Error('No wallet connector available')
+        const connector = await pickConnector(connectors)
         const result = await connectAsync({ connector })
         addr = result.accounts[0]
         chainId = result.chainId

@@ -1,12 +1,12 @@
 import * as esbuild from 'esbuild'
 
 await esbuild.build({
-  entryPoints: ['src/crawl.ts'],
+  entryPoints: ['src/crawl.ts', 'src/reset-daily.ts'],
   bundle: true,
   platform: 'node',
   format: 'esm',
   target: 'node20',
-  outfile: 'dist/crawl.js',
+  outdir: 'dist',
   sourcemap: true,
   banner: {
     js: "import { createRequire as __cr } from 'module'; const require = __cr(import.meta.url);",

@@ -63,7 +63,11 @@ declares the matching `ARG`s):
 | Variable | Value |
 |---|---|
 | `VITE_API_BASE` | the **api** service's public URL, e.g. `https://api-production-xxxx.up.railway.app` |
-| `VITE_WALLETCONNECT_PROJECT_ID` | your WalletConnect project id (optional) |
+| `VITE_WALLETCONNECT_PROJECT_ID` | your [WalletConnect/Reown](https://cloud.reown.com) project id |
+
+> Without `VITE_WALLETCONNECT_PROJECT_ID`, sign-in only works for users with an
+> **injected browser-extension wallet** (MetaMask, Rabby, …); anyone without one gets
+> wagmi's "Provider not found". Set it so the WalletConnect QR/mobile flow is available.
 
 > Changing `VITE_API_BASE` requires a **redeploy/rebuild** of `web`, not just a restart.
 > Generate the api domain first so you know the URL. Generate a domain for `web` too.
@@ -89,6 +93,32 @@ data immediately the first time, trigger a manual deploy/run.
    and the api's `WEB_ORIGIN`/`SIWE_*` to the web URL.
 
 ---
+
+## Reset the daily challenge
+
+The crawler picks the daily pair from leaderboard seeds, some of which have no ENS
+name/avatar (ugly board). To re-roll **today's** puzzle using only endpoints that have
+**both a name and an avatar**, run the reset script against the database. It rebuilds the
+active snapshot's graph in memory, picks a solvable named→named pair, verifies it, and
+upserts today's row. The `/api/daily` route reads this fresh from Postgres, so it's **live
+immediately — no API restart**.
+
+Run it locally against Railway's **public** connection string (the internal
+`postgres.railway.internal` host only resolves inside Railway). Copy `DATABASE_PUBLIC_URL`
+from the Postgres service's **Variables** tab:
+
+```bash
+DATABASE_URL='<DATABASE_PUBLIC_URL from Railway>' pnpm --filter @sdoe/crawler reset-daily
+```
+
+It prints the chosen pair, e.g. `daily 2026-06-19 set: nickxma.eth -> evanmoyer.eth at par 3`.
+Re-run to re-roll (it's a random pick, idempotent on today's date). Optional knobs:
+
+- `RESET_DAILY_PAR=2` — preferred hop count (default 3).
+- `RESET_DAILY_MIN_FOLLOWERS=1000` — only use well-known endpoints (default 0 = any).
+
+The same `reset-daily.js` is baked into the crawler image, so you can alternatively run it
+inside Railway with `railway run` against the crawler service.
 
 ## Local parity
 
