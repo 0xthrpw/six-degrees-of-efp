@@ -17,7 +17,7 @@ COPY packages/crawler/package.json packages/crawler/
 COPY packages/db/package.json packages/db/
 COPY packages/efp-client/package.json packages/efp-client/
 COPY packages/graph/package.json packages/graph/
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --filter "@sdoe/api..."
+RUN pnpm install --frozen-lockfile --filter "@sdoe/api..."
 
 # Source, then bundle. esbuild inlines the @sdoe/* workspace packages, so the
 # runtime stage needs no node_modules.
