@@ -9,6 +9,7 @@
   },
   "scripts": {
     "generate": "drizzle-kit generate",
+    "build": "node build.mjs",
     "migrate": "tsx src/migrate.ts",
     "studio": "drizzle-kit studio",
     "typecheck": "tsc --noEmit"
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@types/pg": "^8.11.10",
-    "drizzle-kit": "^0.28.1"
+    "drizzle-kit": "^0.28.1",
+    "esbuild": "^0.21.5"
   }
 }

@@ -1,0 +1,14 @@
+# Keep the build context small and reproducible. node_modules and dist are
+# rebuilt inside the image; never copy host artifacts (wrong platform/stale).
+**/node_modules
+**/dist
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+**/*.log
+docker-compose.yml
+docs
+*.md
+**/.DS_Store
