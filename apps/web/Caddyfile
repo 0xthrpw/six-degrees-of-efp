@@ -1,0 +1,8 @@
+# Serve the built SPA. Railway injects PORT; default to 80 for local `docker run`.
+:{$PORT:80} {
+	root * /srv
+	encode gzip
+	# SPA fallback: unknown paths (client-side routes) serve index.html.
+	try_files {path} /index.html
+	file_server
+}

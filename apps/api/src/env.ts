@@ -11,7 +11,8 @@ const int = (v: string | undefined, fallback: number) => {
 }
 
 export const env = {
-  port: int(process.env.API_PORT, 8787),
+  // Railway (and most PaaS) inject the listen port as PORT; fall back to API_PORT for local dev.
+  port: int(process.env.PORT ?? process.env.API_PORT, 8787),
   host: process.env.API_HOST ?? '0.0.0.0',
   webOrigin: process.env.WEB_ORIGIN ?? 'http://localhost:5173',
   sessionSecret: process.env.SESSION_SECRET ?? 'dev-secret-change-me-32-bytes-min-length',
